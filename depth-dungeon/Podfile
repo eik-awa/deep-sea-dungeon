@@ -1,0 +1,8 @@
+platform :ios, '17.0'
+
+target 'depth-dungeon' do
+  use_frameworks!
+
+  # GDPR / CCPA 同意 CMP。LevelPlay / Firebase は SwiftPM で追加する。
+  pod 'InMobiCMP'
+end

@@ -1,0 +1,70 @@
+name: depth-dungeon
+options:
+  bundleIdPrefix: eik-awa
+  deploymentTarget:
+    iOS: "17.0"
+
+packages:
+  LevelPlay:
+    url: https://github.com/ironsource-mobile/LevelPlay-Swift-Package
+    branch: main
+  UnityAdsAdapter:
+    url: https://github.com/ironsource-mobile/LevelPlay-UnityAds-Adapter-Swift-Package
+    branch: main
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: "12.17.0"
+
+targets:
+  depth-dungeon:
+    type: application
+    platform: iOS
+    sources:
+      - path: depth-dungeon
+        excludes:
+          - "WebApp/**"        # WebApp はフォルダ参照でリソース追加(下記)
+          - "Info.plist"       # info: から生成
+      # WebApp をフォルダ参照(blue folder)で丸ごとバンドル。
+      # dist をコピーするだけで済み、ハッシュ付きファイルが増減しても pbxproj 不変。
+      - path: depth-dungeon/WebApp
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - package: LevelPlay
+        product: UnityMediationSDK
+      - package: UnityAdsAdapter
+        product: UnityAdsAdapter
+      - package: Firebase
+        product: FirebaseCore
+      - package: Firebase
+        product: FirebaseAnalytics
+    info:
+      path: depth-dungeon/Info.plist
+      properties:
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        ITSAppUsesNonExemptEncryption: false
+        NSUserTrackingUsageDescription: "広告を最適化してより関連性の高い内容を表示するために、この識別子の利用を許可してください。"
+        SKAdNetworkItems:
+          - SKAdNetworkIdentifier: 4dzt52r2t5.skadnetwork
+          - SKAdNetworkIdentifier: bvpn9ufa9b.skadnetwork
+          - SKAdNetworkIdentifier: su67r6k2v3.skadnetwork
+          # TODO: LevelPlay 公式ドキュメントの SKAdNetwork 一覧(数十件)を貼り足す
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: eik-awa.depth-dungeon
+        DEVELOPMENT_TEAM: 7PU4G736RJ
+        SWIFT_VERSION: 5.0
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        OTHER_LDFLAGS: $(inherited) -ObjC

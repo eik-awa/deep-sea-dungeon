@@ -1,0 +1,520 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		01AF4596D8E06F75B519C24F /* AdBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1FA72AD7ABFBD312E15FCDC /* AdBannerView.swift */; };
+		1155A2D4261401EA6EB6E40D /* ConsentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCED43FF1D9E9F7FC9743B8 /* ConsentManager.swift */; };
+		124B537A4283F5AECFF566A5 /* Attack.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E1467BE1397476BDA4E2A2B8 /* Attack.mp3 */; };
+		1D6AA1A8E176FB807FF0E121 /* Below_the_Glass.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 6A8018FE74B77A8A19C0CC66 /* Below_the_Glass.m4a */; };
+		359608E1F37C12C2432CA9C1 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 27D2527CF4267999D3718540 /* FirebaseCore */; };
+		3C6402353773C5BA4F998902 /* GameWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D70664B22AE96F07BF4EB8 /* GameWebView.swift */; };
+		5149283BD8D6A57C2924F28C /* UnityAdsAdapter in Frameworks */ = {isa = PBXBuildFile; productRef = F1328725DCB98AE1058C1634 /* UnityAdsAdapter */; };
+		51800861CEEAED45ACD8B2A5 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 476AECA6DB5D381700901D83 /* FirebaseAnalytics */; };
+		5E2B13A1F87C3D36F76DAF05 /* DebugDeviceConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 125465EA0BD8A15925342FFF /* DebugDeviceConfig.swift */; };
+		62DF4E65CD7840EF8D995E0F /* RewardedAdController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0E96ED15325CF133778D30 /* RewardedAdController.swift */; };
+		64BADA8D3AB0513EE9630164 /* depth_dungeonApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B71EB495E305E9414A502E7E /* depth_dungeonApp.swift */; };
+		6E37345B0705123803B5015E /* UnityMediationSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 14BEB3FC086D73739438FA94 /* UnityMediationSDK */; };
+		A4CE38BCE672EC78EBAD54D5 /* InterstitialAdController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8532E8BC470BC3F43D5E461 /* InterstitialAdController.swift */; };
+		C54ED71796B13E96B149AFD2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1EDDCCFB42FC61E6E73B2BA /* Assets.xcassets */; };
+		CAAE6C72E738C9A72789F9A7 /* WebApp in Resources */ = {isa = PBXBuildFile; fileRef = EB0C08F3D86459B35133D5A3 /* WebApp */; };
+		D918AB2879DAD73D341CAD17 /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F1C3C5A553708EE62558C45 /* AudioManager.swift */; };
+		DA9D07A24A5F393257B487F1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C54AE6B2ADD9F831DBB22B00 /* ContentView.swift */; };
+		DF9BB99E8C4A5602EA307361 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 808C706880C73754941748AC /* GoogleService-Info.plist */; };
+		F3022C220E550B0097E7CCFC /* Pods_depth_dungeon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D65B0CFA0A34FE58D1938CE7 /* Pods_depth_dungeon.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		125465EA0BD8A15925342FFF /* DebugDeviceConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugDeviceConfig.swift; sourceTree = "<group>"; };
+		2BCED43FF1D9E9F7FC9743B8 /* ConsentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsentManager.swift; sourceTree = "<group>"; };
+		4F1C3C5A553708EE62558C45 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
+		6A0E96ED15325CF133778D30 /* RewardedAdController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardedAdController.swift; sourceTree = "<group>"; };
+		6A8018FE74B77A8A19C0CC66 /* Below_the_Glass.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = Below_the_Glass.m4a; sourceTree = "<group>"; };
+		808C706880C73754941748AC /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		82D61E338D4D6341A6908028 /* Pods-depth-dungeon.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-depth-dungeon.release.xcconfig"; path = "Target Support Files/Pods-depth-dungeon/Pods-depth-dungeon.release.xcconfig"; sourceTree = "<group>"; };
+		A43256F79F98E24FD9B37B81 /* Pods-depth-dungeon.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-depth-dungeon.debug.xcconfig"; path = "Target Support Files/Pods-depth-dungeon/Pods-depth-dungeon.debug.xcconfig"; sourceTree = "<group>"; };
+		A8532E8BC470BC3F43D5E461 /* InterstitialAdController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterstitialAdController.swift; sourceTree = "<group>"; };
+		AE7C357D8037AB6D49D3B0C7 /* depth-dungeon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "depth-dungeon.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B1EDDCCFB42FC61E6E73B2BA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B71EB495E305E9414A502E7E /* depth_dungeonApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = depth_dungeonApp.swift; sourceTree = "<group>"; };
+		C1FA72AD7ABFBD312E15FCDC /* AdBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdBannerView.swift; sourceTree = "<group>"; };
+		C54AE6B2ADD9F831DBB22B00 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		D65B0CFA0A34FE58D1938CE7 /* Pods_depth_dungeon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_depth_dungeon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1467BE1397476BDA4E2A2B8 /* Attack.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = Attack.mp3; sourceTree = "<group>"; };
+		EB0C08F3D86459B35133D5A3 /* WebApp */ = {isa = PBXFileReference; lastKnownFileType = folder; name = WebApp; path = "depth-dungeon/WebApp"; sourceTree = SOURCE_ROOT; };
+		F3D70664B22AE96F07BF4EB8 /* GameWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameWebView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		67C88E7E569F9C3220240A98 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6E37345B0705123803B5015E /* UnityMediationSDK in Frameworks */,
+				5149283BD8D6A57C2924F28C /* UnityAdsAdapter in Frameworks */,
+				359608E1F37C12C2432CA9C1 /* FirebaseCore in Frameworks */,
+				51800861CEEAED45ACD8B2A5 /* FirebaseAnalytics in Frameworks */,
+				F3022C220E550B0097E7CCFC /* Pods_depth_dungeon.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		11A5838265C7453090823526 = {
+			isa = PBXGroup;
+			children = (
+				EB0C08F3D86459B35133D5A3 /* WebApp */,
+				418507DA9EEFD2C228A28C46 /* depth-dungeon */,
+				1684BA0E58784A8E13551B88 /* Products */,
+				30E8601BFC182B29DCC8AEE5 /* Pods */,
+				3D90744D89B9B36A9D4808AB /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		1684BA0E58784A8E13551B88 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AE7C357D8037AB6D49D3B0C7 /* depth-dungeon.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		30E8601BFC182B29DCC8AEE5 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				A43256F79F98E24FD9B37B81 /* Pods-depth-dungeon.debug.xcconfig */,
+				82D61E338D4D6341A6908028 /* Pods-depth-dungeon.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		3D90744D89B9B36A9D4808AB /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D65B0CFA0A34FE58D1938CE7 /* Pods_depth_dungeon.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		418507DA9EEFD2C228A28C46 /* depth-dungeon */ = {
+			isa = PBXGroup;
+			children = (
+				C1FA72AD7ABFBD312E15FCDC /* AdBannerView.swift */,
+				B1EDDCCFB42FC61E6E73B2BA /* Assets.xcassets */,
+				E1467BE1397476BDA4E2A2B8 /* Attack.mp3 */,
+				4F1C3C5A553708EE62558C45 /* AudioManager.swift */,
+				6A8018FE74B77A8A19C0CC66 /* Below_the_Glass.m4a */,
+				2BCED43FF1D9E9F7FC9743B8 /* ConsentManager.swift */,
+				C54AE6B2ADD9F831DBB22B00 /* ContentView.swift */,
+				125465EA0BD8A15925342FFF /* DebugDeviceConfig.swift */,
+				B71EB495E305E9414A502E7E /* depth_dungeonApp.swift */,
+				F3D70664B22AE96F07BF4EB8 /* GameWebView.swift */,
+				808C706880C73754941748AC /* GoogleService-Info.plist */,
+				A8532E8BC470BC3F43D5E461 /* InterstitialAdController.swift */,
+				6A0E96ED15325CF133778D30 /* RewardedAdController.swift */,
+			);
+			path = "depth-dungeon";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BC796A63923C0E59070504FD /* depth-dungeon */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 294D9A8E30E551B9951B71AA /* Build configuration list for PBXNativeTarget "depth-dungeon" */;
+			buildPhases = (
+				93C86DC742F4C4FB02A7493D /* [CP] Check Pods Manifest.lock */,
+				9160FAE07C7F7B8F738067B9 /* Sources */,
+				300546A3391E073E8F037AA3 /* Resources */,
+				67C88E7E569F9C3220240A98 /* Frameworks */,
+				1B70EE264A07FEAC9169D62A /* [CP] Embed Pods Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "depth-dungeon";
+			packageProductDependencies = (
+				14BEB3FC086D73739438FA94 /* UnityMediationSDK */,
+				F1328725DCB98AE1058C1634 /* UnityAdsAdapter */,
+				27D2527CF4267999D3718540 /* FirebaseCore */,
+				476AECA6DB5D381700901D83 /* FirebaseAnalytics */,
+			);
+			productName = "depth-dungeon";
+			productReference = AE7C357D8037AB6D49D3B0C7 /* depth-dungeon.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4D525B1CC4E7589161FAD345 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					BC796A63923C0E59070504FD = {
+						DevelopmentTeam = 7PU4G736RJ;
+					};
+				};
+			};
+			buildConfigurationList = 47C5F7784AE69E2576B6B047 /* Build configuration list for PBXProject "depth-dungeon" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 11A5838265C7453090823526;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				29F2122F1442CA44F9B98D76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				39CB9686C954DC7BBADAE01A /* XCRemoteSwiftPackageReference "LevelPlay-Swift-Package" */,
+				3F5A447A5999E21DC3A7EF09 /* XCRemoteSwiftPackageReference "LevelPlay-UnityAds-Adapter-Swift-Package" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1684BA0E58784A8E13551B88 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BC796A63923C0E59070504FD /* depth-dungeon */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		300546A3391E073E8F037AA3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C54ED71796B13E96B149AFD2 /* Assets.xcassets in Resources */,
+				124B537A4283F5AECFF566A5 /* Attack.mp3 in Resources */,
+				1D6AA1A8E176FB807FF0E121 /* Below_the_Glass.m4a in Resources */,
+				DF9BB99E8C4A5602EA307361 /* GoogleService-Info.plist in Resources */,
+				CAAE6C72E738C9A72789F9A7 /* WebApp in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1B70EE264A07FEAC9169D62A /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-depth-dungeon/Pods-depth-dungeon-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-depth-dungeon/Pods-depth-dungeon-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-depth-dungeon/Pods-depth-dungeon-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		93C86DC742F4C4FB02A7493D /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-depth-dungeon-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9160FAE07C7F7B8F738067B9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				01AF4596D8E06F75B519C24F /* AdBannerView.swift in Sources */,
+				D918AB2879DAD73D341CAD17 /* AudioManager.swift in Sources */,
+				1155A2D4261401EA6EB6E40D /* ConsentManager.swift in Sources */,
+				DA9D07A24A5F393257B487F1 /* ContentView.swift in Sources */,
+				5E2B13A1F87C3D36F76DAF05 /* DebugDeviceConfig.swift in Sources */,
+				3C6402353773C5BA4F998902 /* GameWebView.swift in Sources */,
+				A4CE38BCE672EC78EBAD54D5 /* InterstitialAdController.swift in Sources */,
+				62DF4E65CD7840EF8D995E0F /* RewardedAdController.swift in Sources */,
+				64BADA8D3AB0513EE9630164 /* depth_dungeonApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		31AB5C73D546EF172817C0FC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		434BC23841BA5670D5636364 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A43256F79F98E24FD9B37B81 /* Pods-depth-dungeon.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7PU4G736RJ;
+				INFOPLIST_FILE = "depth-dungeon/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "深海ダンジョン";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.role-playing-games";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "eik-awa.depth-dungeon";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4702AE8D593171C0D33E1CF3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 82D61E338D4D6341A6908028 /* Pods-depth-dungeon.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7PU4G736RJ;
+				INFOPLIST_FILE = "depth-dungeon/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "深海ダンジョン";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.role-playing-games";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "eik-awa.depth-dungeon";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		596CF936EC62058C5693CB41 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		294D9A8E30E551B9951B71AA /* Build configuration list for PBXNativeTarget "depth-dungeon" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				434BC23841BA5670D5636364 /* Debug */,
+				4702AE8D593171C0D33E1CF3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		47C5F7784AE69E2576B6B047 /* Build configuration list for PBXProject "depth-dungeon" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				31AB5C73D546EF172817C0FC /* Debug */,
+				596CF936EC62058C5693CB41 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		29F2122F1442CA44F9B98D76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.17.0;
+			};
+		};
+		39CB9686C954DC7BBADAE01A /* XCRemoteSwiftPackageReference "LevelPlay-Swift-Package" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ironsource-mobile/LevelPlay-Swift-Package";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		3F5A447A5999E21DC3A7EF09 /* XCRemoteSwiftPackageReference "LevelPlay-UnityAds-Adapter-Swift-Package" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ironsource-mobile/LevelPlay-UnityAds-Adapter-Swift-Package";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		14BEB3FC086D73739438FA94 /* UnityMediationSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 39CB9686C954DC7BBADAE01A /* XCRemoteSwiftPackageReference "LevelPlay-Swift-Package" */;
+			productName = UnityMediationSDK;
+		};
+		27D2527CF4267999D3718540 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 29F2122F1442CA44F9B98D76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		476AECA6DB5D381700901D83 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 29F2122F1442CA44F9B98D76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		F1328725DCB98AE1058C1634 /* UnityAdsAdapter */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3F5A447A5999E21DC3A7EF09 /* XCRemoteSwiftPackageReference "LevelPlay-UnityAds-Adapter-Swift-Package" */;
+			productName = UnityAdsAdapter;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 4D525B1CC4E7589161FAD345 /* Project object */;
+}
