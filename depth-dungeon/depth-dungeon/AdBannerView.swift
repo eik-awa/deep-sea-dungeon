@@ -10,6 +10,7 @@ import SwiftUI
 import Combine
 import UIKit
 import IronSource
+import FirebaseAnalytics
 
 /// LevelPlay の App Key。IronSource/LevelPlay ダッシュボード → Apps → App Key の値。
 /// Unity Dashboard の Game ID とは別の値。
@@ -33,6 +34,14 @@ final class LevelPlayAdsController: ObservableObject {
     private var retryCount = 0
     private var retryWorkItem: DispatchWorkItem?
     private var isForeground = true
+    /// バックグラウンドへ入った時刻。長時間(6時間以上)裏にいた後の復帰では、SDK セッションが
+    /// 内部的に失効している可能性を疑って再初期化する(「翌日から広告が出ない」対策)。
+    /// 一度 .ready になった SDK は通常二度と再初期化されず、タスクキルしない限り復旧しなかった。
+    private var backgroundedAt: Date?
+    private static let staleAfter: TimeInterval = 6 * 3600
+    /// forceReinitialize() の連打防止(広告失敗のたびに初期化を叩くと配信に悪影響が出うる)。
+    private static let reinitCooldown: TimeInterval = 10 * 60
+    private var lastForcedReinitAt: Date?
 
     private init() {
         NotificationCenter.default.addObserver(
@@ -42,6 +51,7 @@ final class LevelPlayAdsController: ObservableObject {
 
     @objc private func appDidEnterBackground() {
         isForeground = false
+        backgroundedAt = Date()
         retryWorkItem?.cancel()
         retryWorkItem = nil
     }
@@ -55,7 +65,11 @@ final class LevelPlayAdsController: ObservableObject {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             self.isForeground = true
+            let staleReturn = self.backgroundedAt.map { Date().timeIntervalSince($0) > Self.staleAfter } ?? false
+            self.backgroundedAt = nil
             switch self.state {
+            case .ready where staleReturn:
+                self.forceReinitialize(reason: "long_background_return")
             case .ready:
                 RewardedAdController.shared.preloadIfNeeded()
                 InterstitialAdController.shared.preloadIfNeeded()
@@ -66,6 +80,22 @@ final class LevelPlayAdsController: ObservableObject {
                 self.retryWorkItem = nil
                 self.startInit()
             }
+        }
+    }
+
+    /// state == .ready のまま広告が出せなくなっている(SDK セッション失効)ことを疑い、SDK を
+    /// 丸ごと再初期化する。長時間バックグラウンド復帰時と、バナー/リワードが3回連続で
+    /// 失敗した時に呼ばれる。reinitCooldown 未満の間隔では実行しない。
+    func forceReinitialize(reason: String) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            if let last = self.lastForcedReinitAt, Date().timeIntervalSince(last) < Self.reinitCooldown { return }
+            if case .initializing = self.state { return }
+            print("[AdBanner] re-initializing SDK session (reason: \(reason))")
+            Analytics.logEvent("ad_sdk_stale_reinit", parameters: ["reason": reason])
+            self.lastForcedReinitAt = Date()
+            self.state = .idle
+            self.startInit()
         }
     }
 
@@ -157,23 +187,44 @@ private struct AdBannerUIView: UIViewRepresentable {
 
     final class Coordinator: NSObject, LPMBannerAdViewDelegate {
         var requestedLoad = false
+        /// LevelPlay は「バナーの更新は SDK が自動で行うので loadAd を自前で再試行しない」ことを
+        /// 求めているため、ここでは再ロードせず、連続失敗の検知だけを行う。
+        /// 3回連続で失敗したら SDK セッション失効を疑って再初期化させる。
+        private var consecutiveFailures = 0
 
         func didLoadAd(with adInfo: LPMAdInfo) {
             print("[AdBanner] banner loaded: \(adInfo.adUnitId)")
+            Analytics.logEvent("banner_ad_result", parameters: ["result": "loaded"])
+            consecutiveFailures = 0
         }
         func didFailToLoadAd(withAdUnitId adUnitId: String, error: Error) {
             print("[AdBanner] banner load failed (\(adUnitId)): \(error)")
+            Analytics.logEvent("banner_ad_result", parameters: [
+                "result": "load_failed", "error": String(describing: error).prefix(100).description,
+            ])
+            escalateIfRepeated()
         }
         func didDisplayAd(with adInfo: LPMAdInfo) {
             print("[AdBanner] banner displayed")
         }
         func didFailToDisplayAd(with adInfo: LPMAdInfo, error: Error) {
             print("[AdBanner] banner display failed: \(error)")
+            Analytics.logEvent("banner_ad_result", parameters: [
+                "result": "display_failed", "error": String(describing: error).prefix(100).description,
+            ])
+            escalateIfRepeated()
         }
         func didClickAd(with adInfo: LPMAdInfo) {}
         func didLeaveApp(with adInfo: LPMAdInfo) {}
         func didExpandAd(with adInfo: LPMAdInfo) {}
         func didCollapseAd(with adInfo: LPMAdInfo) {}
+
+        private func escalateIfRepeated() {
+            consecutiveFailures += 1
+            if consecutiveFailures >= 3 {
+                LevelPlayAdsController.shared.forceReinitialize(reason: "banner_repeated_failure")
+            }
+        }
     }
 }
 

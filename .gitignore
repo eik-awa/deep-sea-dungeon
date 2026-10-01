@@ -1,0 +1,45 @@
+# macOS
+.DS_Store
+
+# Web(vite)— node_modules は npm install で、dist は npm run build で復元できる
+web/node_modules/
+web/dist/
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager(ローカルビルドキャッシュ。Package.resolved は追跡する)
+.build/
+.swiftpm/
+
+# CocoaPods(Podfile / Podfile.lock は追跡、Pods/ は `pod install` で復元)
+Pods/
+
+# 端末IDFV を含む / Firebase 設定 — コミットしない
+**/debug-config.js
+**/GoogleService-Info.plist
+
+# 開発用の確認画像
+_montage.png
+
+# ユーザー生成アートの元ファイル(webp化して src/assets へ。元は重いので追跡しない)
+art-raw/
+web/scripts/_cre.png
+
+# リポジトリ直下に置かれた素材の入力ファイル(取り込んだら art-raw/ や depth-dungeon/ へ)
+/*.mp3
+/*.m4a
+/*.png
+/*.jpg
+/*.jpeg
+web/scratchpad/

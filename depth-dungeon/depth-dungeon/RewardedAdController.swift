@@ -36,6 +36,13 @@ final class RewardedAdController: NSObject, LPMRewardedAdDelegate {
     private var requestSeq: UInt64 = 0
     private var pendingRequestID: UInt64?
 
+    /// didRewardAd / didCloseAd は順序が保証されない(didRewardAd が後に届くことがある)。
+    /// didCloseAd を先に受けても即 .dismissed にせず、このフラグで今回の視聴の報酬到着を追跡する。
+    private var pendingRewardGranted = false
+    /// 連続ロード失敗回数。3回続いたら SDK セッション失効を疑って再初期化させる。
+    private var consecutiveLoadFailures = 0
+    private static let loadRetryDelays: [TimeInterval] = [5, 15, 30]
+
     private override init() { super.init() }
 
     func preload() {
@@ -64,6 +71,7 @@ final class RewardedAdController: NSObject, LPMRewardedAdDelegate {
         if let ad = ad, ad.isAdReady() {
             onResult = completion
             pendingRequestID = nil
+            pendingRewardGranted = false
             ad.showAd(viewController: vc, placementName: nil)
             return
         }
@@ -106,12 +114,14 @@ final class RewardedAdController: NSObject, LPMRewardedAdDelegate {
     func didLoadAd(with adInfo: LPMAdInfo) {
         print("[RewardedAd] loaded")
         loadStartedAt = nil
+        consecutiveLoadFailures = 0
         guard let cb = pendingCompletion,
               let ad = ad, ad.isAdReady(),
               let vc = UIApplication.shared.ddRootViewController else { return }
         pendingCompletion = nil
         pendingRequestID = nil
         onResult = cb
+        pendingRewardGranted = false
         ad.showAd(viewController: vc, placementName: nil)
     }
 
@@ -123,12 +133,20 @@ final class RewardedAdController: NSObject, LPMRewardedAdDelegate {
             pendingRequestID = nil
             cb(.unavailable)
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in self?.preloadIfNeeded() }
+        consecutiveLoadFailures += 1
+        if consecutiveLoadFailures >= 3 {
+            LevelPlayAdsController.shared.forceReinitialize(reason: "rewarded_repeated_failure")
+        }
+        let delay = Self.loadRetryDelays[min(consecutiveLoadFailures - 1, Self.loadRetryDelays.count - 1)]
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in self?.preloadIfNeeded() }
     }
 
     func didDisplayAd(with adInfo: LPMAdInfo) {}
 
-    func didRewardAd(with adInfo: LPMAdInfo, reward: LPMReward) { finish(.rewarded) }
+    func didRewardAd(with adInfo: LPMAdInfo, reward: LPMReward) {
+        pendingRewardGranted = true
+        finish(.rewarded)
+    }
 
     func didFailToDisplayAd(with adInfo: LPMAdInfo, error: Error) {
         print("[RewardedAd] display failed: \(error)")
@@ -140,7 +158,14 @@ final class RewardedAdController: NSObject, LPMRewardedAdDelegate {
     func didClickAd(with adInfo: LPMAdInfo) {}
 
     func didCloseAd(with adInfo: LPMAdInfo) {
-        finish(.dismissed)
+        // didRewardAd が didCloseAd より後に届くことがあるため、まだ報酬が届いていなければ
+        // 少し待ってから dismissed を確定する(finish は最初の1回だけ有効)。
+        if !pendingRewardGranted {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                guard let self, !self.pendingRewardGranted else { return }
+                self.finish(.dismissed)
+            }
+        }
         preload()
     }
 }

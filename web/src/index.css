@@ -1,0 +1,18 @@
+@import "@fontsource/chivo-mono/300.css";
+@import "@fontsource/chivo-mono/400.css";
+@import "@fontsource/chivo-mono/600.css";
+@import "@fontsource/chivo-mono/700.css";
+@import "@fontsource/zen-kaku-gothic-new/japanese-300.css";
+@import "@fontsource/zen-kaku-gothic-new/japanese-400.css";
+@import "@fontsource/zen-kaku-gothic-new/japanese-500.css";
+@import "@fontsource/zen-kaku-gothic-new/japanese-700.css";
+@import "@fontsource/zen-kaku-gothic-new/japanese-900.css";
+/* 見出し用(観測記録っぽい和風ムードの明朝体)。商用利用可(OFLライセンス)。
+   和文フォントは1ウェイトだけでも重いので、実際に使う2ウェイトのみ読み込む。 */
+@import "@fontsource/shippori-mincho/japanese-400.css";
+@import "@fontsource/shippori-mincho/japanese-700.css";
+/* 数値・英字readout用(SF/ソナー機器っぽい幾何学フォント)。商用利用可(OFLライセンス)。 */
+@import "@fontsource/orbitron/600.css";
+
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; padding: 0; min-height: 100%; }

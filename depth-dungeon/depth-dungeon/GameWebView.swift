@@ -133,7 +133,34 @@ final class GameBridge: NSObject, WKScriptMessageHandler {
             }
 
         case "settings":
-            break
+            // ゲーム内「設定」画面からのBGM/効果音の音量取得・変更。実体は AudioManager.shared の
+            // bgmVolume/seVolume(音量調整はゲーム内の設定画面に一本化している。かつて
+            // ContentView に置いていた右下の音量フローティングボタンは、画面内の他のボタンと
+            // 重なって押せなくなることがあったため廃止した)。
+            guard let dict = message.body as? [String: Any],
+                  let action = dict["action"] as? String else { return }
+            switch action {
+            case "getVolume":
+                Task { @MainActor in
+                    let bgm = AudioManager.shared.bgmVolume
+                    let se = AudioManager.shared.seVolume
+                    DispatchQueue.main.async { [weak self] in
+                        self?.webView?.evaluateJavaScript(
+                            "window.__onVolumeChanged__ && window.__onVolumeChanged__(\(bgm), \(se))")
+                    }
+                }
+            case "setVolume":
+                let track = (dict["track"] as? String) ?? "bgm"
+                if let value = dict["value"] as? Int {
+                    let clamped = max(0, min(100, value))
+                    Task { @MainActor in
+                        if track == "se" { AudioManager.shared.seVolume = clamped }
+                        else { AudioManager.shared.bgmVolume = clamped }
+                    }
+                }
+            default:
+                break
+            }
 
         case "privacy":
             let action = (message.body as? [String: Any])?["action"] as? String

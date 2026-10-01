@@ -48,8 +48,7 @@ targets:
           - UIInterfaceOrientationPortrait
         UISupportedInterfaceOrientations~ipad:
           - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
+        UIRequiresFullScreen: true
         ITSAppUsesNonExemptEncryption: false
         NSUserTrackingUsageDescription: "広告を最適化してより関連性の高い内容を表示するために、この識別子の利用を許可してください。"
         SKAdNetworkItems:

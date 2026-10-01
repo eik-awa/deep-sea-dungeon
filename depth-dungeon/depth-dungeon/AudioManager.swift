@@ -5,11 +5,16 @@ import UIKit
 final class AudioManager: ObservableObject {
     static let shared = AudioManager()
 
-    /// 0〜100 の整数で音量を管理
-    @Published var volumeStep: Int = 70 {
+    /// 0〜100 の整数で音量を管理(BGMと効果音は別々に持つ)
+    @Published var bgmVolume: Int = 70 {
         didSet {
-            UserDefaults.standard.set(volumeStep, forKey: "bgm_volume")
-            applyVolume()
+            UserDefaults.standard.set(bgmVolume, forKey: "bgm_volume")
+            applyBgmVolume()
+        }
+    }
+    @Published var seVolume: Int = 70 {
+        didSet {
+            UserDefaults.standard.set(seVolume, forKey: "se_volume")
         }
     }
 
@@ -25,6 +30,7 @@ final class AudioManager: ObservableObject {
         "zone2": ["zone2.mp3"], "zone3": ["zone3.mp3"], "zone4": ["zone4.mp3"],
         "zone5": ["zone5.mp3"], "zone6": ["zone6.mp3"], "zone7": ["zone7.mp3"],
         "zone8": ["zone8.mp3"], "zone9": ["zone9.mp3"], "zone10": ["zone10.mp3"],
+        "boss": ["boss.mp3"],
     ]
 
     /// 効果音キー(JS からの sound ブリッジ名) → 候補ファイル
@@ -37,8 +43,10 @@ final class AudioManager: ObservableObject {
     ]
 
     private init() {
-        let saved = UserDefaults.standard.integer(forKey: "bgm_volume")
-        volumeStep = UserDefaults.standard.object(forKey: "bgm_volume") != nil ? saved : 70
+        let savedBgm = UserDefaults.standard.integer(forKey: "bgm_volume")
+        bgmVolume = UserDefaults.standard.object(forKey: "bgm_volume") != nil ? savedBgm : 70
+        let savedSe = UserDefaults.standard.integer(forKey: "se_volume")
+        seVolume = UserDefaults.standard.object(forKey: "se_volume") != nil ? savedSe : 70
 
         setupAudioSession()
         loadSE()
@@ -84,7 +92,7 @@ final class AudioManager: ObservableObject {
         next.numberOfLoops = -1
         next.prepareToPlay()
 
-        let target = Float(volumeStep) / 100.0
+        let target = Float(bgmVolume) / 100.0
         fadeTimer?.invalidate()
         fadeTimer = nil
         fadingOut?.stop()
@@ -122,8 +130,8 @@ final class AudioManager: ObservableObject {
 
     /// JS の sound ブリッジから呼ばれる汎用SE再生。未知の名前・読み込み失敗時は何もしない。
     func playSE(_ name: String) {
-        guard volumeStep > 0, let p = sePlayers[name] else { return }
-        p.volume = Float(volumeStep) / 100.0
+        guard seVolume > 0, let p = sePlayers[name] else { return }
+        p.volume = Float(seVolume) / 100.0
         if p.isPlaying {
             p.stop()
             p.currentTime = 0
@@ -172,15 +180,15 @@ final class AudioManager: ObservableObject {
         }
     }
 
-    private func applyVolume() {
-        let v = Float(volumeStep) / 100.0
+    private func applyBgmVolume() {
+        let v = Float(bgmVolume) / 100.0
         bgmPlayer?.volume = v
         if fadeTimer == nil { fadingOut?.volume = v }
     }
 
     @objc private func handleForeground() {
         try? AVAudioSession.sharedInstance().setActive(true)
-        if volumeStep > 0 { bgmPlayer?.play() }
+        if bgmVolume > 0 { bgmPlayer?.play() }
     }
 
     @objc private func handleBackground() {

@@ -1,0 +1,36 @@
+{
+  "name": "web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "oxlint",
+    "smoke": "vite-node scripts/smoke.mjs",
+    "sync": "bash scripts/sync-native.sh",
+    "test": "vitest run --config vitest.config.js",
+    "verify": "npm run build && npm run lint && npm run smoke && npm run test && npm run sync",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource/chivo-mono": "^5.3.0",
+    "@fontsource/orbitron": "^5.3.0",
+    "@fontsource/shippori-mincho": "^5.3.0",
+    "@fontsource/zen-kaku-gothic-new": "^5.3.0",
+    "lucide-react": "^1.31.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "happy-dom": "^20.14.0",
+    "oxlint": "^1.75.0",
+    "sharp": "^0.35.4",
+    "vite": "^8.2.0",
+    "vite-node": "^6.0.0",
+    "vitest": "^4.1.11"
+  }
+}

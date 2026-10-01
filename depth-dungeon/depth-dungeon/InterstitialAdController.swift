@@ -5,10 +5,14 @@
 //  インタースティシャル広告(Unity LevelPlay)。JS 側は「切れ目に来た」ことだけを通知し、
 //  実際に出すかどうか(頻度制御)はこのコントローラが最終判断する。
 //  - 直近表示から最短 INTERSTITIAL_MIN_INTERVAL 秒
+//  - 1日あたり最大 INTERSTITIAL_DAILY_LIMIT 回(UserDefaults に永続、日付が変わるとリセット)
 //  - アプリ起動後、最初の1回の潜航が終わるまでは出さない
 //  - リワード広告の表示前後 60 秒は出さない
 //  - ロード済みでなければ黙ってスキップ(ゲーム進行を止めない)
 //
+//  放置・カジュアル系アプリの一般的な目安(1枠あたり1日3〜6回、全枠合計15〜20回/日)に
+//  合わせて1日6回とした。リワード広告(復活/2倍物資)もJS側でそれぞれ1日6回、
+//  合計で1日あたり最大18回(6+6+6)になる。
 
 import Foundation
 import UIKit
@@ -18,6 +22,9 @@ let interstitialAdUnitID = "mx78euhqopvl1wvn"
 
 private let INTERSTITIAL_MIN_INTERVAL: TimeInterval = 180
 private let REWARD_COOLDOWN: TimeInterval = 60
+private let INTERSTITIAL_DAILY_LIMIT = 6
+private let dailyCountDefaultsKey = "interstitial_daily_count"
+private let dailyDateDefaultsKey = "interstitial_daily_date"
 
 final class InterstitialAdController: NSObject, LPMInterstitialAdDelegate {
     static let shared = InterstitialAdController()
@@ -37,6 +44,31 @@ final class InterstitialAdController: NSObject, LPMInterstitialAdDelegate {
     private var isLoading: Bool {
         guard let t = loadStartedAt else { return false }
         return Date().timeIntervalSince(t) <= 45
+    }
+
+    /// 日付が変わっていたらカウントをリセットしてから、今日の表示回数を返す。
+    private var todayShownCount: Int {
+        let today = Self.todayKey()
+        let defaults = UserDefaults.standard
+        if defaults.string(forKey: dailyDateDefaultsKey) != today {
+            defaults.set(today, forKey: dailyDateDefaultsKey)
+            defaults.set(0, forKey: dailyCountDefaultsKey)
+            return 0
+        }
+        return defaults.integer(forKey: dailyCountDefaultsKey)
+    }
+
+    private func recordShown() {
+        _ = todayShownCount // 日付境界をまたいでいればここでリセットさせる
+        let defaults = UserDefaults.standard
+        defaults.set(defaults.integer(forKey: dailyCountDefaultsKey) + 1, forKey: dailyCountDefaultsKey)
+    }
+
+    private static func todayKey() -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.timeZone = TimeZone.current
+        return f.string(from: Date())
     }
 
     private override init() { super.init() }
@@ -74,6 +106,7 @@ final class InterstitialAdController: NSObject, LPMInterstitialAdDelegate {
         guard firstDiveComplete else { return false }
         if let last = lastShownAt, Date().timeIntervalSince(last) < INTERSTITIAL_MIN_INTERVAL { return false }
         if let r = lastRewardAt, Date().timeIntervalSince(r) < REWARD_COOLDOWN { return false }
+        if todayShownCount >= INTERSTITIAL_DAILY_LIMIT { return false }
         return true
     }
 
@@ -93,12 +126,14 @@ final class InterstitialAdController: NSObject, LPMInterstitialAdDelegate {
         self.closeContext = context
         self.onClosed = onClosed
         lastShownAt = Date()
+        recordShown()
         ad.showAd(viewController: vc, placementName: nil)
     }
 
     private func showDebugTestAd(context: String, onClosed: @escaping (String) -> Void) {
         guard canShow, let vc = UIApplication.shared.ddRootViewController else { onClosed(context); return }
         lastShownAt = Date()
+        recordShown()
         let alert = UIAlertController(title: "テスト全画面広告",
                                      message: "デバッグ端末のため、テスト広告を表示しています…(\(context))",
                                      preferredStyle: .alert)
