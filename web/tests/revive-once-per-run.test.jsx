@@ -1,6 +1,6 @@
 // 回帰テスト: 広告視聴による復活(reviveOffer)は1ランに1回だけ。
 // meta.reviveUsedThisRun が立っている状態で全滅すると、復活オファーを経由せず
-// そのまま「隊は沈んだ」(lost)画面へ進む。
+// そのまま「全滅」(lost)画面へ進む。
 // 注: g.phase が "lost"/"ending" の間は中断セーブ(GAME_KEY)への保存を意図的に止めている
 // (タスキル再開時に解決済みの全滅画面を再現しないための設計)ため、ここでは readGame() では
 // なく実際に描画されたDOM文言で画面遷移を確認する。
@@ -32,7 +32,7 @@ describe("復活オファーの1ラン1回制限", () => {
     click(atkBtn);
     await flush(1500);
 
-    expect(container.textContent).toContain("隊 が 沈 み か け て い る");
+    expect(container.textContent).toContain("絶 体 絶 命");
   });
 
   it("この潜航で既に復活を使っていれば、全滅時に復活オファーを経由せず lost 画面へ進む", async () => {
@@ -43,7 +43,7 @@ describe("復活オファーの1ラン1回制限", () => {
     click(atkBtn);
     await flush(1500);
 
-    expect(container.textContent, "復活済みなのに再度オファーが出てしまっている").not.toContain("隊 が 沈 み か け て い る");
-    expect(container.textContent).toContain("隊 は 沈 ん だ");
+    expect(container.textContent, "復活済みなのに再度オファーが出てしまっている").not.toContain("絶 体 絶 命");
+    expect(container.textContent).toContain("全 滅");
   });
 });

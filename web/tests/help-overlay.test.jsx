@@ -20,8 +20,9 @@ describe("遊び方画面", () => {
       expect(byContainsText(container, label, ".sd-sk-cat"), `タブ「${label}」が見つからない`).toBeTruthy();
     }
 
-    const closeBtn = byContainsText(container, "戻る", "button");
-    expect(closeBtn, "戻るボタンが見つからない").toBeTruthy();
+    // 個別の「戻る」は廃止し、常時表示の下部タブバー(メイン)で閉じる
+    const closeBtn = byContainsText(container, "メイン", ".sd-hometab");
+    expect(closeBtn, "メインタブが見つからない").toBeTruthy();
     click(closeBtn);
     await flush();
     expect(container.textContent).not.toContain("クルー職ごとの効果");

@@ -58,6 +58,6 @@ describe("踏みとどまる意志", () => {
     click(byExactText(container, "攻 撃"));
     await flush(700);
     expect(container.querySelector(".sd-log")?.textContent).toContain("踏みとどまった");
-    expect(container.textContent).not.toContain("隊は沈んだ");
+    expect(container.textContent).not.toContain("全滅");
   });
 });

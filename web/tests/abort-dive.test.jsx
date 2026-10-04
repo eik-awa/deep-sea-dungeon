@@ -3,7 +3,7 @@
 // 一切何も持ち帰れない特別扱い(完全な撤退)だったが、自主的に撤退しただけなのに
 // 死亡より不利という不整合があったため統一した。
 import { describe, it, expect } from "vitest";
-import { renderGame, byExactText, byContainsText, click, flush, readGame, readMeta, makeCrewFixture, baseGame } from "./helpers.jsx";
+import { renderGame, byAriaLabel, byExactText, byContainsText, click, flush, readGame, readMeta, makeCrewFixture, baseGame } from "./helpers.jsx";
 
 describe("潜航をやめて母船へ戻る", () => {
   it("確認画面で「やめる」を選ぶと中断セーブは消えず、潜航が続けられる", async () => {
@@ -51,7 +51,11 @@ describe("潜航をやめて母船へ戻る", () => {
 
     click(byContainsText(container, "潜航をやめて母船へ戻る", "button"));
     await flush();
-    expect(container.textContent, "引き継ぐ一覧にロック装備が出ていない").toContain("ロック装備");
+    // 一覧はアイコンのみ(名前はタップした時だけ下に出る)。推奨で選択済み(on)に
+    // なっていることをアイコンの状態で確認する。
+    const lockedIcon = byAriaLabel(container, "ロック装備", ".sd-review-icon");
+    expect(lockedIcon, "引き継ぐ一覧にロック装備が出ていない").toBeTruthy();
+    expect(lockedIcon.classList.contains("on"), "ロック装備が推奨(選択済み)になっていない").toBe(true);
 
     click(byExactText(container, "この内容で帰還する"));
     await flush();

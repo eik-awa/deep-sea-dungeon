@@ -39,11 +39,10 @@ describe("設定画面の音量", () => {
   });
 });
 
-describe("スクロールするポップアップのバツボタン", () => {
-  it("「帰還」の確認画面はバツボタンで閉じられる", async () => {
-    // ※ スキルツリー・観測記録・設定は全画面表示化され、戻るボタンは画面中央の
-    //   「戻る」に統一された。この sd-sheet-head + バツボタンのパターンが今も
-    //   残っている newGameReview(「帰還」確認画面)を直接開いて確認する。
+describe("帰還確認ポップアップの閉じ方", () => {
+  it("「帰還」の確認画面は「やめる」ボタンで閉じられる", async () => {
+    // ※ 以前は見出し右上に専用の×ボタンがあったが、下の「やめる」ボタンと機能が
+    //   重複しており、余白・見た目の観点からも不要だったため廃止した。
     const crew = makeCrewFixture({ gear: null });
     const game = baseGame({ phase: "wreck", eventDone: true, crew: [crew], bagOpen: true });
     const { container } = await renderGame({ game });
@@ -51,10 +50,9 @@ describe("スクロールするポップアップのバツボタン", () => {
     click(byContainsText(container, "潜航をやめて母船へ戻る", "button"));
     await flush();
     expect(container.textContent).toContain("この内容で帰還しますか?");
+    expect(container.querySelector(".sd-sheet-head button"), "見出しに×ボタンが残っている").toBeNull();
 
-    const closeBtn = container.querySelector(".sd-sheet-head button");
-    expect(closeBtn, "ヘッダー内のバツボタンが見つからない").toBeTruthy();
-    click(closeBtn);
+    click(byContainsText(container, "やめる", "button"));
     await flush();
 
     expect(container.textContent).not.toContain("この内容で帰還しますか?");

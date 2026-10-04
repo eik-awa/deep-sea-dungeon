@@ -899,9 +899,10 @@ function skillIconFor(s) {
   if (s.id.startsWith("mermaidBond")) return Sparkles;
   return SK_CAT_META[s.cat]?.icon || Sparkles;
 }
-const SK_RING_BASE = 58; // 中心(核)から最初の輪までの距離
-const SK_RING_GAP = 66;  // 輪と輪(前提→次)の間隔
-const SK_ARC = 52;       // 1系統が占める扇の角度(系統間に隙間を残す)
+const SK_RING_BASE = 58;  // 中心(核)から最初の輪までの最小距離
+const SK_RING_GAP = 66;   // 輪と輪(前提→次)の最小間隔
+const SK_ARC = 52;        // 1系統が占める扇の角度(系統間に隙間を残す)
+const SK_MIN_SEP = 46;    // 同じ輪に並ぶノード同士の最低中心間距離(px)。重なり防止の要。
 function buildSkillLayout() {
   const cats = SKILL_CATS;
   const n = cats.length;
@@ -937,11 +938,29 @@ function buildSkillLayout() {
     };
     roots.forEach((r) => assign(r, 0));
     const total = Math.max(leafCounter, 1);
+
+    // 深さごとのノード数を数え、その輪が SK_MIN_SEP を保てる最低半径を求める。
+    // 固定の等差(SK_RING_BASE + depth*SK_RING_GAP)だけに頼ると、内側の狭い輪に
+    // ノードが何個も同時に乗る系統(探索・火力など)で重なってしまうため、
+    // 「その輪の人数だけの弧の長さが要る」分だけ外側へ押し出す。
+    const countByDepth = {};
+    list.forEach((s) => { countByDepth[depth[s.id]] = (countByDepth[depth[s.id]] || 0) + 1; });
+    const maxDepth = Math.max(0, ...Object.values(depth));
+    const radiusByDepth = {};
+    let prevR = 0;
+    for (let d = 0; d <= maxDepth; d++) {
+      const cnt = countByDepth[d] || 1;
+      const neededByCount = (SK_MIN_SEP * cnt) / ((SK_ARC * Math.PI) / 180);
+      const r = Math.max(SK_RING_BASE + d * SK_RING_GAP, prevR + SK_RING_GAP, neededByCount);
+      radiusByDepth[d] = r;
+      prevR = r;
+    }
+
     let maxR = 0;
     list.forEach((s) => {
       const t = total <= 1 ? 0.5 : (slot[s.id] + 0.5) / total;
       const angle = baseAngle - SK_ARC / 2 + t * SK_ARC;
-      const r = SK_RING_BASE + depth[s.id] * SK_RING_GAP;
+      const r = radiusByDepth[depth[s.id]];
       const rad = (angle * Math.PI) / 180;
       pos[s.id] = { x: Math.cos(rad) * r, y: Math.sin(rad) * r, angle, depth: depth[s.id], r, cat };
       maxR = Math.max(maxR, r);
@@ -1434,7 +1453,7 @@ html, body { height: 100%; overflow-x: hidden; background: var(--abyss); }
 .sd-ov-inner { display: flex; align-items: flex-start; justify-content: center;
   width: 100%; margin: auto 0; }
 @keyframes sdFade { from { opacity: 0; } to { opacity: 1; } }
-.sd-sheet { width: 100%; max-width: 680px; padding: 20px 18px 16px;
+.sd-sheet { width: 100%; max-width: 680px; padding: 18px 18px 16px;
   border: 1px solid var(--line-2); background: linear-gradient(180deg, var(--hull-2), var(--hull));
   border-radius: 22px; }
 /* 収納シートは外枠を固定し、中身だけスクロール */
@@ -1447,9 +1466,12 @@ html, body { height: 100%; overflow-x: hidden; background: var(--abyss); }
    ヘッダーごと親の .sd-ov がスクロールする場合はその内側)に対して効く。
    sd-sheet の余白をはみ出して端まで塗るため負のマージンで打ち消し、
    スクロールしてきた本文がヘッダーの下に隠れて見えないよう背景も不透明にする。 */
-.sd-sheet-head { position: sticky; top: 0; z-index: 2; margin: -20px -18px 12px;
-  padding: 20px 18px 10px; background: var(--hull-2); border-radius: 22px 22px 0 0;
+.sd-sheet-head { position: sticky; top: 0; z-index: 2; margin: -18px -18px 12px;
+  padding: 18px 18px 10px; background: var(--hull-2); border-radius: 22px 22px 0 0;
   border-bottom: 1px solid var(--line); }
+/* 帰還確認(NewGameReviewOverlay)は×ボタンを置かないため、本文とスクロール領域を
+   分ける線も不要(見出し単体なら線で区切るほどの段差が無い)。 */
+.sd-sheet-head.noline { border-bottom: none; }
 .sd-sheet h2 { font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: .16em; color: var(--cyan); }
 .sd-sheet .sd-sub { color: var(--ink-dim); font-size: 12px; margin: 7px 0 14px; line-height: 1.85; }
 .sd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 7px; }
@@ -1477,8 +1499,30 @@ html, body { height: 100%; overflow-x: hidden; background: var(--abyss); }
   border: 1px solid rgba(255,123,107,.35); padding: 7px 11px; margin-top: 10px; line-height: 1.6;
   border-radius: 10px; }
 .sd-hr { height: 1px; background: var(--line); margin: 12px 0; }
+/* 帰還確認(NewGameReviewOverlay)の持ち帰り選択。カードを並べる .sd-grid/.sd-cell と違い、
+   アイコンだけをずらっと並べ、タップで選択トグル+直下に詳細(名前・説明)を表示する。 */
+.sd-review-icons { display: flex; flex-wrap: wrap; gap: 8px; }
+.sd-review-icon { width: 48px; height: 48px; border-radius: 12px; position: relative;
+  border: 1.5px solid var(--line); background: rgba(6,14,24,.7); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; }
+.sd-review-icon.on { border-color: var(--rc, var(--amber)); box-shadow: 0 0 0 1px var(--rc, var(--amber)); }
+.sd-review-icon.sel { box-shadow: 0 0 0 2px var(--ink); }
+.sd-review-icon .chk { position: absolute; right: -4px; bottom: -4px; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--rc, var(--amber)); color: #04121a; font-size: 10px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; }
+.sd-review-peek { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 12px;
+  border: 1px solid var(--line-2); border-radius: 12px; background: rgba(6,14,24,.6); }
+.sd-review-peek .nm { font-size: 12px; font-weight: 700; }
+.sd-review-peek .mt { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); margin-top: 2px; }
+.sd-review-peek .pk { font-family: var(--mono); font-size: 10px; white-space: nowrap; margin-left: auto; }
 .sd-lab { font-family: var(--mono); font-size: 9.5px; color: var(--ink-dimmer);
   letter-spacing: .14em; margin: 10px 0 7px; border-left: 2px solid var(--line-2); padding-left: 6px; }
+/* 倍率などの数値比較を見せる簡易テーブル(遊び方タブ用)。 */
+.sd-tbl { width: 100%; border-collapse: collapse; font-size: 11px; }
+.sd-tbl th { font-family: var(--mono); font-size: 9.5px; color: var(--ink-dimmer); font-weight: 600;
+  text-align: left; letter-spacing: .08em; padding: 5px 8px; border-bottom: 1px solid var(--line-2); }
+.sd-tbl td { padding: 6px 8px; border-bottom: 1px solid var(--line); font-family: var(--mono); }
+.sd-tbl tr:last-child td { border-bottom: none; }
 
 /* ── タイトル ── */
 .sd-title { position: relative; z-index: 2; min-height: 100vh; display: flex; flex-direction: column;
@@ -1538,6 +1582,9 @@ html, body { height: 100%; overflow-x: hidden; background: var(--abyss); }
 }
 @media (prefers-reduced-motion: reduce) {
   .sd-credits-in { animation: none; }
+  /* アニメーションを止めると44vhで静止したまま先が一切見れなくなるため、
+     この設定の時だけ手でスクロールできるようにする(見切れて読めない状態を防ぐ)。 */
+  .sd-credits { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 }
 
 /* ── コンパクトクルー行(縦4×横2 = 最大8人・スクロールなし) ── */
@@ -1601,6 +1648,11 @@ html, body { height: 100%; overflow-x: hidden; background: var(--abyss); }
   background: transparent; border: none; padding: 6px 2px; cursor: pointer; position: relative; min-height: 48px; }
 .sd-hometab.on { color: var(--cyan); }
 .sd-hometab .sd-meta-badge { position: absolute; top: 2px; right: 18%; font-family: var(--mono); font-size: 8.5px; color: var(--amber); }
+/* スキルツリー・図鑑等(.sd-fs-root.sd-fs-meta, z-index:65)を開いている間もタブバーを
+   隠さないための一段高いz-index。装備・収納などの画面固有ポップアップ(.sd-fs-root無印,
+   z-index:60)やモーダル確認(.sd-ov/.sd-ov.top)はこの対象ではない(overlay state を
+   使わないため、このクラスは付かない)。 */
+.sd-hometabs-top { z-index: 66; }
 /* タブバー分、タイトル画面の下側コンテンツが隠れないよう余白を確保する */
 .sd-title { padding-bottom: 84px; }
 
@@ -1673,9 +1725,14 @@ html, body { height: 100%; overflow-x: hidden; background: var(--abyss); }
 .sd-sktree-hub { position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; margin: -20px 0 0 -20px;
   border-radius: 50%; border: 1px solid var(--line-2); background: radial-gradient(circle, rgba(79,214,232,.22), transparent 70%);
   display: flex; align-items: center; justify-content: center; color: var(--cyan); pointer-events: none; }
-.sd-sktree-link { position: absolute; height: 2px; background: var(--line); transform-origin: 0 50%; pointer-events: none; }
-.sd-sktree-link.owned { background: var(--cn, var(--cyan)); opacity: .55; height: 2.5px; }
-.sd-sktree-link.buyable { background: var(--cn, var(--amber)); opacity: .4; }
+/* 前提→次のつながりは直線ではなく「放射状に伸びてから輪に沿って曲がる」折れ線
+   (エルボー型コネクタ)で描く。単純な放射状より基板図/配線図のような見た目になる。
+   SVGのviewBoxはワールド座標そのもの(px)なので、実ピクセルサイズが分からない
+   テスト環境でも崩れない。 */
+.sd-sktree-lines { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
+.sd-sktree-link { fill: none; stroke: var(--line); stroke-width: 2; }
+.sd-sktree-link.owned { stroke: var(--cn, var(--cyan)); opacity: .6; stroke-width: 2.5; }
+.sd-sktree-link.buyable { stroke: var(--cn, var(--amber)); opacity: .45; }
 .sd-sktree-catlabel { position: absolute; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 5px;
   font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .08em; white-space: nowrap;
   padding: 5px 10px; border-radius: 999px; border: 1px solid currentColor; background: rgba(3,7,17,.72); pointer-events: none; opacity: .85; }
@@ -1697,7 +1754,9 @@ html, body { height: 100%; overflow-x: hidden; background: var(--abyss); }
 
 /* 選択中スキルの詳細(下部シート)。以前は決定ボタンだけが画面右端に固定されていて
    違和感があったため、アイコン・名称・説明・コスト・習得ボタンを1枚の帯にまとめた。 */
-.sd-sktree-detail { position: relative; z-index: 1; flex-shrink: 0; margin: 0 16px 8px; padding: 12px 14px;
+/* 下の戻るボタンを撤去し常時表示タブバー(position:fixed、約84px)に一本化したため、
+   詳細パネルがその下に隠れないよう下マージンでタブバー分を空ける。 */
+.sd-sktree-detail { position: relative; z-index: 1; flex-shrink: 0; margin: 0 16px calc(env(safe-area-inset-bottom,0px) + 14px + 84px); padding: 12px 14px;
   border: 1px solid var(--line-2); border-radius: 14px; background: rgba(6,14,24,.86); animation: sdFade .15s ease; }
 .sk-detail-head { display: flex; align-items: center; gap: 10px; }
 .sk-detail-icon { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--cn, var(--line-2));
@@ -1724,6 +1783,11 @@ html, body { height: 100%; overflow-x: hidden; background: var(--abyss); }
 .sd-fs-top, .sd-fs-body, .sd-fs-actions { position: relative; z-index: 1; }
 .sd-fs-top { flex-shrink: 0; padding: calc(env(safe-area-inset-top,0px) + 14px) 16px 8px; }
 .sd-fs-body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 16px 12px; -webkit-overflow-scrolling: touch; }
+/* 強化/倉庫/スキル/図鑑/設定/遊び方(.sd-fs-meta)は個別の「戻る」を持たず、代わりに
+   常時表示の下部タブバー(.sd-hometabs、position:fixed、約84px)をその場に重ねて使う。
+   タブバーはflexの外(fixed)なので、本文側で同じ高さ分の下余白を確保しておかないと
+   最後の要素がタブバーの下に隠れてしまう。 */
+.sd-fs-root.sd-fs-meta .sd-fs-body { padding-bottom: calc(env(safe-area-inset-bottom,0px) + 14px + 84px); }
 .sd-fs-actions { flex-shrink: 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
   gap: 10px; padding: 8px 16px calc(env(safe-area-inset-bottom,0px) + 14px);
   background: linear-gradient(180deg, transparent, var(--abyss) 30%); }
@@ -1995,14 +2059,19 @@ function RarTag({ rarity }) {
 }
 
 // 一覧セル(クルー/装備/遺物/消耗品を共通表示)
-function Cell({ item, onClick, on, actionLabel, hint, sub }) {
-  const r = rarityOf(item.rarity);
-  const meta = item.kind === "crew"
+// アイテム1点の説明テキスト(種類ごとに表示する内容が違う)。Cellと、帰還確認の
+// アイコン一覧(NewGameReviewOverlay)の詳細表示で共用する。
+function itemMetaText(item) {
+  return item.kind === "crew"
     ? `${CREW_TYPES[item.type].label}・${CREW_TYPES[item.type].role}・HP${item.maxHp}/攻${item.atk}`
     : item.kind === "gear"
       ? `${GEAR_TYPES[item.slot].label}・HP+${item.hp} 攻+${item.atk} 防+${item.def}`
       : item.kind === "relic" ? item.desc
       : CONSUMABLES[item.itemId].desc;
+}
+function Cell({ item, onClick, on, actionLabel, hint, sub }) {
+  const r = rarityOf(item.rarity);
+  const meta = itemMetaText(item);
   return (
     <button className={`sd-cell ${on ? "on" : ""}`} onClick={onClick}
       style={{ boxShadow: on ? undefined : r.glow === "none" ? undefined : r.glow }}>
@@ -2251,6 +2320,12 @@ export default function StillDepths() {
   // ここに値がある間、タイトル画面に「続きから再開」ボタンが出る。起動時は自動で
   // 潜航画面へは入らず、必ずタイトルから始まるようにするため、setG では直接反映しない。
   const [resumable, setResumable] = useState(null);
+  // タイトルの「帰還する」で開く確認ダイアログ専用のフラグ。潜航中の newGameReview と
+  // あえて別にしてある: タイトルからはまだ画面(g.screen)を一切変えずに確認だけを
+  // 見せたい(キャンセルしたら何も起きずタイトルのまま、確定して初めて帰還画面へ進む)。
+  // 以前は確認を開いた瞬間に g を resumable へ差し替えていたため、キャンセルすると
+  // 裏にあった潜航中の戦闘画面がそのまま見えてしまっていた。
+  const [titleReturnReview, setTitleReturnReview] = useState(false);
   const [bagSort, setBagSort] = useState("type"); // 袋の並び順: "type"(種類順=レア度順) | "acq"(入手順)
   const [logOpen, setLogOpen] = useState(false); // 戦闘ログの全文ポップアップ
   // クルーカードの操作モード。null=閲覧のみ(ドラッグ&入れ替え無効)、"reorder"=並び順入れ替え、
@@ -3690,23 +3765,17 @@ export default function StillDepths() {
       return m2;
     });
   };
-  const metaOverlays = (
-    <>
-      {overlay === "bestiary" && <BestiaryOverlay meta={meta} onClose={() => setOverlay(null)} />}
-      {overlay === "skills" && <SkillTreeOverlay meta={meta} onClose={() => setOverlay(null)} onBuy={buySkill} />}
-      {overlay === "settings" && <SettingsOverlay meta={meta} setMeta={setMeta} onClose={() => setOverlay(null)} />}
-      {overlay === "help" && <HelpOverlay onClose={() => setOverlay(null)} />}
-      {overlay === "reinforce" && <ReinforceOverlay meta={meta} onClose={() => setOverlay(null)} onReinforce={reinforceCrew} />}
-      {overlay === "storage" && <StorageOverlay meta={meta} storageN={storageN} onClose={() => setOverlay(null)} onDiscard={discardFromStorage} />}
-    </>
-  );
   // タイトル(ホーム)画面下部の固定タブバー。メイン/強化/スキル/図鑑/設定を同格の
   // タブとして並べ、常に画面下部の押しやすい位置から切り替えられるようにする。
   // 「メイン」はタブというより「今開いている物を閉じる」動作(overlayをnullに戻す)。
   // onHome を渡すと「メイン」タップ時にそれを呼ぶ(潜航中断・タイトルへ戻る等)。
   // 省略時(タイトル画面自身)は開いているオーバーレイを閉じるだけ。
+  // スキルツリー・図鑑などの全画面オーバーレイを開いている間もこのタブバー自体は
+  // 隠れず(.sd-hometabs-top で z-index を一段上げる)、タップでそのまま他のメニューへ
+  // 切り替えられる。以前はオーバーレイ側に個別の「戻る」ボタンがあったが、タブバーが
+  // 常に見えている以上その場しのぎの「閉じるだけ」のボタンは不要なので撤去した。
   const HomeTabBar = ({ onHome }) => (
-    <div className="sd-hometabs">
+    <div className={`sd-hometabs ${overlay ? "sd-hometabs-top" : ""}`}>
       <button className={`sd-hometab ${!overlay ? "on" : ""}`} onClick={() => { setOverlay(null); onHome?.(); }}>
         <Compass size={17} /><span>メイン</span>
       </button>
@@ -3729,6 +3798,21 @@ export default function StillDepths() {
       </button>
     </div>
   );
+  // 各オーバーレイは、個別の「戻る」ボタンの代わりにこの常時表示タブバーを下部に埋め込む。
+  // onHome は呼び出し元の画面(タイトル/海域選択/編成/潜航中)ごとに異なる「メイン」の挙動。
+  const metaOverlays = (onHome) => {
+    const tabBar = <HomeTabBar onHome={onHome} />;
+    return (
+      <>
+        {overlay === "bestiary" && <BestiaryOverlay meta={meta} tabBar={tabBar} />}
+        {overlay === "skills" && <SkillTreeOverlay meta={meta} onBuy={buySkill} tabBar={tabBar} />}
+        {overlay === "settings" && <SettingsOverlay meta={meta} setMeta={setMeta} tabBar={tabBar} />}
+        {overlay === "help" && <HelpOverlay tabBar={tabBar} />}
+        {overlay === "reinforce" && <ReinforceOverlay meta={meta} onReinforce={reinforceCrew} tabBar={tabBar} />}
+        {overlay === "storage" && <StorageOverlay meta={meta} storageN={storageN} onDiscard={discardFromStorage} tabBar={tabBar} />}
+      </>
+    );
+  };
 
   /* ============================================================
      描画
@@ -3770,9 +3854,26 @@ export default function StillDepths() {
                 続きから再開
               </button>
               <button className="sd-btn sm"
-                onClick={() => setG({ ...resumable, newGameReview: true })}>
-                帰還する(今の持ち物を船に戻します)
+                onClick={() => setTitleReturnReview(true)}>
+                帰還する(持ち物を船内ストレージへ持ち帰ります)
               </button>
+              {/* タイトルからの帰還確認。g(表示中の画面)には一切触れないので、
+                  キャンセルすれば何も起きずタイトルのまま(以前は確認を開いた瞬間に
+                  画面が裏の潜航中バトルへ差し替わってしまい、キャンセルするとそれが
+                  見えてしまっていた)。確定した時だけ帰還画面(phase:"return")へ進む。 */}
+              {titleReturnReview && (
+                <NewGameReviewOverlay g={resumable} storageN={storageN}
+                  onClose={() => setTitleReturnReview(false)}
+                  onConfirm={(carried) => {
+                    setMeta((prev) => {
+                      const m2 = { ...prev, carried };
+                      saveMeta(m2);
+                      return m2;
+                    });
+                    setTitleReturnReview(false);
+                    setG({ ...resumable, phase: "return", returnCarried: carried });
+                  }} />
+              )}
             </>
           ) : (
             <button className="sd-btn pri" style={{ marginTop: 4, padding: "12px 36px", fontSize: 14 }}
@@ -3794,7 +3895,7 @@ export default function StillDepths() {
             {meta.clears > 0 && <> ／ 星海到達 {meta.clears} 回</>}
           </div>
         </div>
-        {metaOverlays}
+        {metaOverlays()}
         <HomeTabBar />
       </div>
     );
@@ -3849,7 +3950,7 @@ export default function StillDepths() {
             </div>
           </div>
         </div>
-        {metaOverlays}
+        {metaOverlays(() => setG({ screen: "title" }))}
         <HomeTabBar onHome={() => setG({ screen: "title" })} />
       </div>
     );
@@ -3861,7 +3962,7 @@ export default function StillDepths() {
       <>
         <CrewSelect meta={meta} onStart={startDive} onBack={() => setG({ screen: "title" })}
           pendingZone={g.pendingZone ?? null} />
-        {metaOverlays}
+        {metaOverlays(() => setG({ screen: "title" }))}
         <HomeTabBar onHome={() => setG({ screen: "title" })} />
       </>
     );
@@ -4346,11 +4447,13 @@ export default function StillDepths() {
         </div>
       )}
 
-      {/* ── 帰還前の一覧確認(持ち帰る物を選べる) ──
-          タイトルの「帰還する」・潜航中の「潜航をやめて母船へ戻る」いずれから開いても
-          全く同じダイアログ・確定後の流れになる(区別する意味が無いので統合済み)。
-          キャンセルはその場のダイアログを閉じるだけで、潜航はそのまま続けられる
-          (タイトル起点でも、資産は既に g へ読み込まれているのでそのまま続行できる)。 */}
+      {/* ── 帰還前の一覧確認(持ち帰る物を選べる) ── 潜航中の「潜航をやめて母船へ戻る」用。
+          タイトルの「帰還する」は titleReturnReview 側の別インスタンス(タイトル画面の
+          分岐内)を使う。内容・見た目は同じ NewGameReviewOverlay だが、キャンセル時に
+          「何も起きずそのまま今の画面に留まる」という挙動を両方の入口で正しくするには
+          g 自体を書き換えるタイミングを分ける必要があるため、あえて2箇所から呼んでいる。
+          ここ(潜航中)はキャンセルすればその場のダイアログを閉じるだけで、潜航はそのまま
+          続けられる。 */}
       {g.newGameReview && (
         <NewGameReviewOverlay g={g} storageN={storageN}
           onClose={() => setG((s) => ({ ...s, newGameReview: false }))}
@@ -4960,7 +5063,7 @@ export default function StillDepths() {
         <div className="sd-ov top">
           <div className="sd-ov-inner">
           <div className="sd-sheet" style={{ maxWidth: 380, textAlign: "center" }}>
-            <h2 style={{ color: "var(--danger)" }}>隊 が 沈 み か け て い る</h2>
+            <h2 style={{ color: "var(--danger)" }}>絶 体 絶 命</h2>
             <div className="sd-sub" style={{ marginTop: 10 }}>
               観測機を再起動すれば、この場で戦線に踏みとどまれる。<br />
               この潜航で <b style={{ color: "var(--amber)" }}>1度だけ</b> 使えます。
@@ -4983,7 +5086,7 @@ export default function StillDepths() {
         <div className="sd-ov">
           <div className="sd-ov-inner">
           <div className="sd-sheet">
-            <h2 style={{ color: "var(--danger)" }}>隊 は 沈 ん だ</h2>
+            <h2 style={{ color: "var(--danger)" }}>全 滅</h2>
             <div className="sd-sub">
               深度 {depthMeters(g.depth)}m、{Z.name}。緊急浮上装置が作動した。<br />
               船内ストレージへ持ち帰れるのは <b style={{ color: "var(--amber)" }}>{storageN} 点</b> まで(種類を問わない共通枠)。
@@ -5114,7 +5217,7 @@ export default function StillDepths() {
           </div>
         </div>
       )}
-      {metaOverlays}
+      {metaOverlays(pauseToTitle)}
       <HomeTabBar onHome={pauseToTitle} />
     </div>
   );
@@ -5128,38 +5231,63 @@ function NewGameReviewOverlay({ g, storageN, onClose, onConfirm }) {
   // 初期値は推奨(ロック品優先)。死亡時の持ち帰り選択画面と同じ操作感に揃える。
   // 船内ストレージは種類を問わない共通プール(storageN)として数える。
   const [pick, setPick] = useState(() => recommendStorage(g, storageN));
-  const toggle = (it) => setPick((p) => {
-    if (p.includes(it.id)) return p.filter((x) => x !== it.id);
-    return p.length < storageN ? [...p, it.id] : p;
-  });
+  // 直前にタップした物。アイコンだけの一覧なので、タップした時だけ詳細(名前・説明)を
+  // すぐ下に出す(推奨/解除ボタンは廃止し、タップ=選択トグルの1操作に統一した)。
+  const [peekId, setPeekId] = useState(null);
+  const toggle = (it) => {
+    setPeekId(it.id);
+    setPick((p) => {
+      if (p.includes(it.id)) return p.filter((x) => x !== it.id);
+      return p.length < storageN ? [...p, it.id] : p;
+    });
+  };
+  const peek = peekId ? salvage.find((it) => it.id === peekId) : null;
   return (
     <div className="sd-ov top" onClick={onClose}>
       <div className="sd-ov-inner">
         <div className="sd-sheet sd-sheet-scroll" style={{ maxWidth: 560 }} onClick={(e) => e.stopPropagation()}>
-          <div className="sd-sheet-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div className="sd-sheet-head noline">
             <h2>この内容で帰還しますか?</h2>
-            <button className="sd-btn sm" onClick={onClose}><X size={13} /></button>
           </div>
           <div className="sd-sub" style={{ margin: "8px 0 4px" }}>
-            この潜航を終えて母船へ戻ります。船のストレージへ持ち帰る物を選んでください
+            この潜航を終えて母船へ戻ります。船のストレージへ持ち帰る物をタップして選んでください
             (船内ストレージ {storageN}点まで、種類を問わない共通枠)。
           </div>
           {salvage.length > 0 ? (
-            <div className="sd-grid">
-              {salvage.map((it) => (
-                <Cell key={it.id} item={it} on={pick.includes(it.id)} onClick={() => toggle(it)}
-                  actionLabel={pick.includes(it.id) ? "✓ 持ち帰る" : "選択する"} />
-              ))}
+            <div className="sd-review-icons">
+              {salvage.map((it) => {
+                const r = rarityOf(it.rarity);
+                const picked = pick.includes(it.id);
+                return (
+                  <button key={it.id} type="button"
+                    className={`sd-review-icon ${picked ? "on" : ""} ${peekId === it.id ? "sel" : ""}`}
+                    style={{ "--rc": r.color }} aria-label={it.name}
+                    onClick={() => toggle(it)}>
+                    <Icon assetId={it.asset} size={26} color={picked ? r.color : "var(--ink-dim)"} />
+                    {picked && <span className="chk">✓</span>}
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <div className="sd-sub" style={{ color: "var(--ink-dimmer)" }}>持ち物はありません。</div>
+          )}
+          {peek && (
+            <div className="sd-review-peek">
+              <Icon assetId={peek.asset} size={28} color={rarityOf(peek.rarity).color} />
+              <div style={{ minWidth: 0 }}>
+                <div className="nm">{peek.name}</div>
+                <div className="mt">{itemMetaText(peek)}</div>
+              </div>
+              <span className="pk" style={{ color: pick.includes(peek.id) ? "var(--ok)" : "var(--ink-dimmer)" }}>
+                {pick.includes(peek.id) ? "✓ 持ち帰る" : "持ち帰らない"}
+              </span>
+            </div>
           )}
           <div className="sd-rows" style={{ marginTop: 10 }}>
             <div style={{ marginRight: "auto", alignSelf: "center", fontFamily: "var(--mono)", fontSize: 11, color: "var(--ink-dim)" }}>
               選択 <span style={{ color: pick.length >= storageN ? "var(--amber)" : "var(--ink-dim)" }}>{pick.length}/{storageN}</span>
             </div>
-            <button className="sd-btn sm" onClick={() => setPick(recommendStorage(g, storageN))}>推奨</button>
-            <button className="sd-btn sm" onClick={() => setPick([])}>解除</button>
           </div>
           <div className="sd-rows">
             <button className="sd-btn sm" style={{ marginRight: "auto" }} onClick={onClose}>やめる</button>
@@ -5177,7 +5305,7 @@ function NewGameReviewOverlay({ g, storageN, onClose, onConfirm }) {
 /* ============================================================
    観測記録(図鑑)オーバーレイ
 ============================================================ */
-function BestiaryOverlay({ meta, onClose }) {
+function BestiaryOverlay({ meta, tabBar }) {
   const [zi, setZi] = useState(null);
   const [sel, setSel] = useState(null); // { id, isBoss, isMutant }
   const seen = meta?.seen || {};
@@ -5256,15 +5384,16 @@ function BestiaryOverlay({ meta, onClose }) {
     );
   }
 
-  // 3階層(海域一覧→海域内グリッド→個体の詳細)を1つの戻るボタンで一段ずつ戻る。
-  // 上部は情報のみ(タップは下部の「戻る」に集約)。
+  // 3階層(海域一覧→海域内グリッド→個体の詳細)を1段ずつ戻る内部ナビゲーション。
+  // オーバーレイ自体を閉じる操作は常時表示のタブバー(メイン等)が担うので、ここでは
+  // 「一段戻る」だけを扱う(最上位からさらに戻る動作は無い=何もしない)。
   const goBack = () => {
     if (sel) { setSel(null); return; }
     if (zi != null) { setZi(null); return; }
-    onClose();
   };
 
   const zoneBg = zi != null ? zoneBgUrl(zi) : null;
+  const drilledIn = zi != null;
 
   return (
     <div className="sd-fs-root sd-fs-meta">
@@ -5274,6 +5403,11 @@ function BestiaryOverlay({ meta, onClose }) {
       {zoneBg && <img className="sd-fs-bg" src={zoneBg} alt="" />}
       <div className="sd-fs-top">
         <h2>観 測 記 録</h2>
+        {drilledIn && (
+          // 海域内・個体詳細にいる間だけの「一段戻る」。オーバーレイを閉じる戻るボタンとは
+          // 別物なので、下部タブバーではなく見出しのすぐ下に小さく置く。
+          <button className="sd-btn sm" style={{ marginTop: 6 }} onClick={goBack}>← 一覧へ戻る</button>
+        )}
         {zi == null && !sel && <div className="sd-sub" style={{ margin: "6px 0 0" }}>記録 {totalSeen} / {totalAll} 種</div>}
         {zi != null && !sel && <div className="sd-sub" style={{ margin: "6px 0 0" }}>海域 {zi + 1} {ZONES[zi].name}</div>}
       </div>
@@ -5327,9 +5461,7 @@ function BestiaryOverlay({ meta, onClose }) {
         })()}
       </div>
 
-      <div className="sd-fs-actions" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
-        <button className="sd-btn fs-back" onClick={goBack}>戻る</button>
-      </div>
+      {tabBar}
     </div>
   );
 }
@@ -5341,7 +5473,7 @@ const SK_MIN_SCALE = 0.28;
 const SK_MAX_SCALE = 2.4;
 const clampScale = (v) => Math.max(SK_MIN_SCALE, Math.min(SK_MAX_SCALE, v));
 
-function SkillTreeOverlay({ meta, onClose, onBuy }) {
+function SkillTreeOverlay({ meta, onBuy, tabBar }) {
   const skills = meta?.skills || {};
   const shards = meta?.shards || 0;
   const [selId, setSelId] = useState(null);
@@ -5405,18 +5537,23 @@ function SkillTreeOverlay({ meta, onClose, onBuy }) {
   const zoomBy = (mult) => setView((v) => ({ ...v, scale: clampScale(v.scale * mult) }));
   const resetView = () => setView((v) => ({ ...v, x: 0, y: 0 }));
 
+  // 前提(親)→次(子)を「親の角度のまま子の輪まで伸び、輪に沿って弧を描いて子へ着く」
+  // 折れ線(エルボー型)でつなぐ。単純な直線の放射状より配線図のような見た目になり、
+  // 同じ輪の隣同士が重ならないよう広げた余白ともよく馴染む。
   const links = [];
   SKILL_TREE.forEach((s) => {
     const p = SKILL_LAYOUT.parentOf[s.id];
     if (!p) return;
     const a = SKILL_LAYOUT.pos[p], b = SKILL_LAYOUT.pos[s.id];
     if (!a || !b) return;
-    const dx = b.x - a.x, dy = b.y - a.y;
-    const len = Math.hypot(dx, dy);
-    const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+    const bendRad = (a.angle * Math.PI) / 180;
+    const bx = Math.cos(bendRad) * b.r, by = Math.sin(bendRad) * b.r;
+    const sweep = b.angle >= a.angle ? 1 : 0;
+    const d = `M ${a.x.toFixed(1)} ${a.y.toFixed(1)} L ${bx.toFixed(1)} ${by.toFixed(1)} A ${b.r.toFixed(1)} ${b.r.toFixed(1)} 0 0 ${sweep} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`;
     const state = skills[s.id] ? "owned" : (!owned && skillPrereqsMet(s, skills) && skillUnlocked(s, meta) && shards >= s.cost ? "buyable" : "");
-    links.push({ id: s.id, x: a.x, y: a.y, len, angle, state, color: SK_CAT_META[s.cat]?.color });
+    links.push({ id: s.id, d, state, color: SK_CAT_META[s.cat]?.color });
   });
+  const svgR = SKILL_LAYOUT.maxRadius + 50;
 
   const SelIcon = sel ? skillIconFor(sel) : null;
 
@@ -5445,10 +5582,11 @@ function SkillTreeOverlay({ meta, onClose, onBuy }) {
         <div className="sd-sktree-viewport"
           onWheel={onWheel} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
           <div className="sd-sktree-canvas" style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>
-            {links.map((l) => (
-              <div key={l.id} className={`sd-sktree-link ${l.state}`}
-                style={{ left: `calc(50% + ${l.x}px)`, top: `calc(50% + ${l.y}px)`, width: `${l.len}px`, transform: `rotate(${l.angle}deg)`, "--cn": l.color }} />
-            ))}
+            <svg className="sd-sktree-lines" viewBox={`${-svgR} ${-svgR} ${svgR * 2} ${svgR * 2}`} preserveAspectRatio="xMidYMid meet">
+              {links.map((l) => (
+                <path key={l.id} className={`sd-sktree-link ${l.state}`} d={l.d} style={{ "--cn": l.color }} />
+              ))}
+            </svg>
             {SKILL_CATS.map((c) => {
               const m = SK_CAT_META[c];
               const r = (SKILL_LAYOUT.catMaxR[c] || SK_RING_BASE) + 34;
@@ -5520,9 +5658,7 @@ function SkillTreeOverlay({ meta, onClose, onBuy }) {
         </div>
       )}
 
-      <div className="sd-fs-actions">
-        <button className="sd-btn fs-back" onClick={onClose}>戻る</button>
-      </div>
+      {tabBar}
     </div>
   );
 }
@@ -5549,7 +5685,7 @@ function VolumeRow({ label, value, onChange }) {
     </div>
   );
 }
-function SettingsOverlay({ meta, setMeta, onClose }) {
+function SettingsOverlay({ meta, setMeta, tabBar }) {
   const bridge = (name, body) => { try { window.webkit?.messageHandlers?.[name]?.postMessage?.(body ?? {}); } catch (e) {} };
   // BGM・効果音は別々の音量を持つ。実体はネイティブ側 AudioManager.shared の
   // bgmVolume/seVolume。音量調整はこの設定画面に一本化している(かつてあった画面右下の
@@ -5614,9 +5750,7 @@ function SettingsOverlay({ meta, setMeta, onClose }) {
           進行データはこの端末に保存されます。アプリを削除すると失われます。
         </div>
       </div>
-      <div className="sd-fs-actions" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
-        <button className="sd-btn fs-back" onClick={onClose}>戻る</button>
-      </div>
+      {tabBar}
     </div>
   );
 }
@@ -5648,7 +5782,7 @@ const ITEM_KIND_LABEL = {
   heal: "回復(単体)", healAll: "回復(全体)", cd: "スキル回復", bomb: "攻撃",
   guard: "防御", shards: "残響片", carrySlot: "ストレージ拡張", specimen: "標本",
 };
-function HelpOverlay({ onClose }) {
+function HelpOverlay({ tabBar }) {
   const [helpTab, setHelpTab] = useState(HELP_TABS[0].id);
   return (
     <div className="sd-fs-root sd-fs-meta">
@@ -5684,14 +5818,24 @@ function HelpOverlay({ onClose }) {
             <HelpSection title="戦闘の進め方">
               <div className="sd-sub" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <div>・生存しているクルーが上から順に1体ずつ行動します。「攻撃」(通常攻撃)か「技」(スキル、使うとクールダウンに入る)のどちらかを選んでください。</div>
-                <div>・自分(クルー全員)が1巡行動すると、必ず敵の番が1巡返ってきます。この繰り返しを「ターン」として数え、戦闘ログにも「── ターンN ──」の区切りで残ります。</div>
-                <div>・敵を全員倒せば勝利。逆に隊員全員が戦闘不能になると、その回の潜航は終わり(「隊は沈んだ」)になります。</div>
+                <div>・自分(クルー全員)が1巡行動すると、必ず敵の番が1巡返ってきます。この繰り返しを「ターン」として数えます。</div>
+                <div>・敵を全員倒せば勝利。逆に隊員全員が戦闘不能になると、その回の潜航は全滅で終わります。</div>
               </div>
             </HelpSection>
             <HelpSection title="属性の相性(弱点・耐性)">
-              <div className="sd-sub" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <div>・敵は<b style={{ color: "var(--ink)" }}>徹甲・熱量・電磁・音響・生体</b>の5属性のうち、弱点・耐性を持つことがあります。弱点を突くとダメージ<b style={{ color: "var(--amber)" }}>{Math.round(AFF_W * 100)}%</b>、耐性がある相手には<b style={{ color: "var(--ink-dimmer)" }}>{Math.round(AFF_R * 100)}%</b>になります(等倍は100%)。</div>
-                <div>・弱点・耐性は「走査」(観測士のスキルや、その属性で攻撃が命中した時に少しずつ)しないと表示されません。分からない属性は「未走査」と出ます。一度判明した弱点・耐性は観測記録(図鑑)に永続保存され、同じ種と再会した時も引き継がれます。</div>
+              <div className="sd-sub" style={{ marginBottom: 8 }}>
+                敵は<b style={{ color: "var(--ink)" }}>徹甲・熱量・電磁・音響・生体</b>の5属性のうち、弱点・耐性を持つことがあります。
+              </div>
+              <table className="sd-tbl">
+                <thead><tr><th>相性</th><th>ダメージ倍率</th></tr></thead>
+                <tbody>
+                  <tr><td style={{ color: "var(--amber)" }}>弱点を突く</td><td>×{AFF_W.toFixed(2)}</td></tr>
+                  <tr><td>等倍</td><td>×1.00</td></tr>
+                  <tr><td style={{ color: "var(--ink-dimmer)" }}>耐性がある</td><td>×{AFF_R.toFixed(2)}</td></tr>
+                </tbody>
+              </table>
+              <div className="sd-sub" style={{ marginTop: 10 }}>
+                弱点・耐性は「走査」(観測士のスキルや、その属性で攻撃が命中した時に少しずつ)しないと表示されません。分からない属性は「未走査」と出ます。一度判明した弱点・耐性は観測記録(図鑑)に永続保存され、同じ種と再会した時も引き継がれます。
               </div>
             </HelpSection>
             <HelpSection title="状態異常など">
@@ -5713,7 +5857,7 @@ function HelpOverlay({ onClose }) {
                 <div>・<b style={{ color: "var(--ink)" }}>各レイヤー最初の戦闘の前</b>には必ず「準備」画面が挟まり、装備・収納を自由に開いて整えられます。</div>
                 <div>・残骸・補給・行商などの<b style={{ color: "var(--ink)" }}>イベントノード</b>でも、戦闘中でなければいつでも装備・収納を開けます。</div>
                 <div>・<b style={{ color: "var(--danger)" }}>戦闘中は消耗品のみ使用可能</b>で、装備の着脱・入れ替えはできません。戦う前に整えておいてください。</div>
-                <div>・装備には<b style={{ color: "var(--ink)" }}>耐圧服/増幅器(c.gear、同じ1枠を取り合う)</b>と<b style={{ color: "var(--ink)" }}>武器(c.weapon、独立した別枠)</b>があり、両方同時に装備できます。武器だけを入れ替えたい時は、収納画面の「武器入れ替え」から専用のポップアップで2人をタップして交換できます。</div>
+                <div>・装備には<b style={{ color: "var(--ink)" }}>耐圧服/増幅器(同じ1枠を取り合う)</b>と<b style={{ color: "var(--ink)" }}>武器(独立した別枠)</b>があり、両方同時に装備できます。武器だけを入れ替えたい時は、収納画面の「武器入れ替え」から専用のポップアップで2人をタップして交換できます。</div>
                 <div>・クルーカードを見た目のまま並び替えたり、装備一式(耐圧服/増幅器・武器の両方)をまとめて入れ替えたい時は、収納画面上部の「並び替え」「装備交換」アイコンでモードを選んでからドラッグ&ドロップしてください(モードを選んでいない間はドラッグしても何も起きません)。</div>
               </div>
             </HelpSection>
@@ -5721,7 +5865,7 @@ function HelpOverlay({ onClose }) {
               <div className="sd-sub" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <div>・下部タブ「強化」を開くと、船のストレージに持ち帰った<b style={{ color: "var(--ink)" }}>アーティファクト(遺物)</b>を1つ選び、名簿の職種(全8種)に重ねて消費できます。</div>
                 <div>・アーティファクトのレア度が高いほど、1回で上がるレベルが大きくなります(☆の数だけレベルが上がる)。レベルは最大{CREW_LEVEL_MAX}まで、1レベルにつき最大HP・攻撃力が+{Math.round(CREW_LEVEL_BONUS_PER * 100)}%(上限で合計+{Math.round(CREW_LEVEL_MAX * CREW_LEVEL_BONUS_PER * 100)}%)されます。</div>
-                <div>・強化で上がったレベルはその職種(名簿)に永続で残り、以後どの潜航でその職種を連れて行っても引き継がれます。武器・防具(kind:gear)は強化には使えません(戦闘装備のまま使ってください)。</div>
+                <div>・強化で上がったレベルはその職種(名簿)に永続で残り、以後どの潜航でその職種を連れて行っても引き継がれます。武器・防具は強化には使えません(戦闘装備のまま使ってください)。</div>
                 <div>・最大HPを底上げしたい場合は、強化ではなく下部タブ「スキル」の生存系スキル(耐圧殻など)を育ててください。ボスを倒すだけでは最大HPも継承枠も増えません。</div>
               </div>
             </HelpSection>
@@ -5751,16 +5895,19 @@ function HelpOverlay({ onClose }) {
               <div className="sd-sub" style={{ marginBottom: 8 }}>
                 装備(耐圧服/増幅器/武器)・遺物・クルーには5段階のレア度があります。レア度が高いほど性能が良く、深い海域ほど高レアが出やすくなります。
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                {RARITIES.map((r) => (
-                  <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 11 }}>
-                    <span style={{ color: r.color, fontFamily: "var(--mono)", minWidth: 90 }}>{r.label}</span>
-                    <span style={{ color: "var(--ink-dim)" }}>基礎性能 ×{r.mult.toFixed(2)}</span>
-                  </div>
-                ))}
-              </div>
+              <table className="sd-tbl">
+                <thead><tr><th>レア度</th><th>基礎性能倍率</th></tr></thead>
+                <tbody>
+                  {RARITIES.map((r) => (
+                    <tr key={r.id}>
+                      <td style={{ color: r.color }}>{r.label}</td>
+                      <td style={{ color: "var(--ink-dim)" }}>×{r.mult.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
               <div className="sd-sub" style={{ marginTop: 10 }}>
-                一部の強力な遺物は、深い海域に到達するまで出現しません(例: 海域4以降/海域7以降でのみ解禁される遺物があります)。浅い海域の難易度が遺物ガチャだけで乱高下しないための調整です。
+                一部の強力な遺物は、深い海域に到達するまで出現しません(例: 海域4以降/海域7以降でのみ解禁される遺物があります)。
               </div>
             </HelpSection>
           </>
@@ -5771,7 +5918,7 @@ function HelpOverlay({ onClose }) {
             <HelpSection title="帰還(自主的に潜航を切り上げる)">
               <div className="sd-sub" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <div>・収納画面の「潜航をやめて母船へ戻る」を選ぶと、その時点で持っている物を確認したうえで<b style={{ color: "var(--cyan)" }}>帰還</b>できます。無理に深追いせず、成果を確定させて引き返す選択肢です。</div>
-                <div>・帰還すると、持ち帰り枠(下記)の上限まで装備・消耗品・遺物が船のストレージ(meta.carried)へ入り、以後いつでも使えます。船に戻った直後は専用の「帰還」画面で、何を持ち帰ったかを確認できます。</div>
+                <div>・帰還すると、持ち帰り枠(下記)の上限まで装備・消耗品・遺物が船のストレージへ入り、以後いつでも使えます。船に戻った直後は専用の「帰還」画面で、何を持ち帰ったかを確認できます。</div>
                 <div>・帰還は全滅ではないので、ペナルティはありません。次の潜航も、それまでに突破した海域のチェックポイントから始まります。</div>
               </div>
             </HelpSection>
@@ -5818,9 +5965,7 @@ function HelpOverlay({ onClose }) {
           );
         })}
       </div>
-      <div className="sd-fs-actions" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
-        <button className="sd-btn fs-back" onClick={onClose}>戻る</button>
-      </div>
+      {tabBar}
     </div>
   );
 }
@@ -5830,7 +5975,7 @@ function HelpOverlay({ onClose }) {
    永久強化する。強化した名簿は、以後どの潜航で連れて行っても(装備・消耗品とは別に)
    基礎ステータスが底上げされた状態で登場する。
 ============================================================ */
-function ReinforceOverlay({ meta, onClose, onReinforce }) {
+function ReinforceOverlay({ meta, onReinforce, tabBar }) {
   const [selArtifactId, setSelArtifactId] = useState(null);
   // 強化に使えるのはアーティファクト(遺物)のみ。武器・防具は戦闘装備のまま強化の対象外にする。
   const artifacts = (meta?.carried || []).filter((x) => x.kind === "relic");
@@ -5889,9 +6034,7 @@ function ReinforceOverlay({ meta, onClose, onReinforce }) {
           })}
         </div>
       </div>
-      <div className="sd-fs-actions" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
-        <button className="sd-btn fs-back" onClick={onClose}>戻る</button>
-      </div>
+      {tabBar}
     </div>
   );
 }
@@ -5902,7 +6045,7 @@ function ReinforceOverlay({ meta, onClose, onReinforce }) {
    潜航開始時にはこのうちスコアの高い物から carryN/relicN 件だけが自動で積み込まれる
    (積まれなかった残りはそのままここに残る)。空きを作りたい時はここから個別に捨てられる。
 ============================================================ */
-function StorageOverlay({ meta, storageN, onClose, onDiscard }) {
+function StorageOverlay({ meta, storageN, onDiscard, tabBar }) {
   const items = meta?.carried || [];
   return (
     <div className="sd-fs-root sd-fs-meta">
@@ -5925,9 +6068,7 @@ function StorageOverlay({ meta, storageN, onClose, onDiscard }) {
           </div>
         )}
       </div>
-      <div className="sd-fs-actions" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
-        <button className="sd-btn fs-back" onClick={onClose}>戻る</button>
-      </div>
+      {tabBar}
     </div>
   );
 }
@@ -5990,7 +6131,7 @@ function CrewSelect({ meta, onStart, onBack, pendingZone }) {
               {pendingZone != null ? `海域 ${pendingZone + 1}「${ZONES[pendingZone].name}」へ再挑戦` : "出 航 編 成"}
             </div>
             <div style={{ fontSize: 11.5, color: "var(--ink-dim)", marginTop: 7, lineHeight: 1.85 }}>
-              潜航に連れて行く3人を選んでください。救難信号で見つけた人物は名簿に永続記録され、以後いつでも編成できます。<br />
+              潜航に連れて行く最大{partyN}人を選んでください。救難信号で見つけた人物は名簿に永続記録され、以後いつでも編成できます。<br />
               <span style={{ color: "var(--ink-dimmer)" }}>高レアの生存者ほど出現率は低く設定されています(固有 UR は約0.6%)。</span>
             </div>
           </div>

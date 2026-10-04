@@ -39,7 +39,7 @@ describe("帰還(潜航を自主的に切り上げて母船へ戻る)", () => {
     const game = baseGame({ phase: "wreck", eventDone: true, crew: [crew], depth: 7 });
     const { container } = await renderGame({ meta: { carrySlots: 1 }, game, skipResume: true });
 
-    click(byExactText(container, "帰還する(今の持ち物を船に戻します)"));
+    click(byExactText(container, "帰還する(持ち物を船内ストレージへ持ち帰ります)"));
     await flush();
     click(byExactText(container, "この内容で帰還する"));
     await flush();

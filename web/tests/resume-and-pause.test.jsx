@@ -70,29 +70,33 @@ describe("潜航中にゲームを終了させずメインへ戻る", () => {
 });
 
 describe("タイトルから「帰還する」で持ち物を船へ戻す", () => {
-  it("確認画面をキャンセルすると、そのまま潜航へ戻れる(中断データは消えない)", async () => {
+  it("確認画面をキャンセルすると、画面は一切変わらずタイトルのまま(中断データも消えない)", async () => {
     const game = baseGame({ phase: "wreck", eventDone: true, crew: [makeCrewFixture()], depth: 7 });
     const { container } = await renderGame({ game, skipResume: true });
 
-    click(byExactText(container, "帰還する(今の持ち物を船に戻します)"));
+    click(byExactText(container, "帰還する(持ち物を船内ストレージへ持ち帰ります)"));
     await flush();
     expect(container.textContent).toContain("この内容で帰還しますか?");
 
-    const closeBtn = container.querySelector(".sd-sheet-head button");
-    expect(closeBtn, "確認画面のバツボタンが見つからない").toBeTruthy();
-    click(closeBtn);
+    // キャンセルは「やめる」ボタンで行う(個別の×ボタンは廃止した)
+    click(byExactText(container, "やめる"));
     await flush();
 
-    // キャンセル = 帰還をやめただけなので、そのまま潜航中の画面に戻る
-    expect(container.querySelector(".sd-gauge"), "キャンセルしたのに潜航画面に戻らない").not.toBeNull();
+    // タイトルからの帰還確認はキャンセルしても画面(g)自体を一切変えないため、
+    // 裏の潜航中バトル画面が見えてしまうことなく、そのままタイトルに留まる
+    // (以前はダイアログを開いた瞬間に裏の画面を潜航中へ差し替えていたため、
+    // キャンセルするとバトル画面が見えてしまっていた)。
+    expect(container.textContent).toContain("深海ダンジョン");
+    expect(container.querySelector(".sd-gauge"), "キャンセルしたのに潜航画面に切り替わっている").toBeNull();
     expect(readGame(), "キャンセルしたのに中断セーブが消えている").not.toBeNull();
+    expect(byExactText(container, "続きから再開"), "キャンセルしたのに再開ボタンが消えている").toBeTruthy();
   });
 
   it("確定すると帰還画面を経てタイトルに戻り、中断データは消え「続きから再開」ボタンも出ない", async () => {
     const game = baseGame({ phase: "wreck", eventDone: true, crew: [makeCrewFixture()], depth: 7 });
     const { container } = await renderGame({ meta: { carrySlots: 1 }, game, skipResume: true });
 
-    click(byExactText(container, "帰還する(今の持ち物を船に戻します)"));
+    click(byExactText(container, "帰還する(持ち物を船内ストレージへ持ち帰ります)"));
     await flush();
     click(byExactText(container, "この内容で帰還する"));
     await flush();
@@ -131,9 +135,8 @@ describe("潜航中でも強化・スキル・図鑑・設定にいつでも切�
     click(byContainsText(container, "設定", ".sd-hometab"));
     await flush();
     expect(container.textContent).toContain("設 定");
-    click(byContainsText(container, "戻る", ".fs-back") || byExactText(container, "戻る"));
-    await flush();
 
+    // 常時表示のタブバーなので、個別の「戻る」を経由せず直接他のタブへ切り替えられる
     click(byContainsText(container, "スキル", ".sd-hometab"));
     await flush();
     expect(container.textContent).toContain("ス キ ル ツ リ ー");

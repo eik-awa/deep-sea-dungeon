@@ -6,7 +6,7 @@
 // 船内ストレージ(storageN)は種類を問わない共通プールなので、ストレージの空きが少ない時は
 // 装備・消耗品・遺物が互いにスコアを取り合う(以前の carryN/relicN 分離プールとは異なる)。
 import { describe, it, expect } from "vitest";
-import { renderGame, byExactText, byContainsText, click, flush, readMeta, makeCrewFixture, baseGame } from "./helpers.jsx";
+import { renderGame, byAriaLabel, byExactText, byContainsText, click, flush, readMeta, makeCrewFixture, baseGame } from "./helpers.jsx";
 
 describe("持ち帰り品の手動選択", () => {
   it("推奨されなかった物を選び直すと、その通りに meta.carried へ反映される", async () => {
@@ -22,12 +22,13 @@ describe("持ち帰り品の手動選択", () => {
     click(byContainsText(container, "潜航をやめて母船へ戻る", "button"));
     await flush();
 
-    const relicCell = byContainsText(container, "螺旋の心臓", ".sd-cell");
-    const gearCell = byContainsText(container, "上等な耐圧服", ".sd-cell");
-    const itemCell = byContainsText(container, "救命キット", ".sd-cell");
-    expect(relicCell.textContent, "スコアの高い遺物が推奨されているはずが違う").toContain("✓ 持ち帰る");
-    expect(gearCell.textContent, "スコアの高い耐圧服が推奨されているはずが違う").toContain("✓ 持ち帰る");
-    expect(itemCell.textContent, "ストレージが埋まっているのに救命キットまで推奨されている").toContain("選択する");
+    // 一覧はアイコンのみ(名前・選択状態はaria-label/onクラスで確認する)
+    const relicCell = byAriaLabel(container, "螺旋の心臓", ".sd-review-icon");
+    const gearCell = byAriaLabel(container, "上等な耐圧服", ".sd-review-icon");
+    const itemCell = byAriaLabel(container, "救命キット", ".sd-review-icon");
+    expect(relicCell.classList.contains("on"), "スコアの高い遺物が推奨されているはずが違う").toBe(true);
+    expect(gearCell.classList.contains("on"), "スコアの高い耐圧服が推奨されているはずが違う").toBe(true);
+    expect(itemCell.classList.contains("on"), "ストレージが埋まっているのに救命キットまで推奨されている").toBe(false);
 
     // 手動で選び直す: 耐圧服を外し、救命キットを選ぶ(枠は2のまま)
     click(gearCell);
